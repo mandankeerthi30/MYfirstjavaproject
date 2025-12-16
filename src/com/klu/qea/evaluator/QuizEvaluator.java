@@ -1,5 +1,6 @@
 package com.klu.qea.evaluator;
 
+import com.klu.qea.exception.IncompleteQuizException;
 import com.klu.qea.io.*;
 import com.klu.qea.model.Question;
 //import com.klu.qea.util.AnalyticsUtil;
@@ -36,76 +37,76 @@ public class QuizEvaluator implements Evaluator{
     }
 
     public void evaluateAll() {
+
         for (var student : responses.entrySet()) {
-            String sid = student.getKey();
+
+            String studentId = student.getKey();
+            Map<String, String> studentResponses = student.getValue();
             double total = 0;
-
+            try {
+                if (studentResponses.size() < questions.size()) {
+                    throw new IncompleteQuizException(
+                        "Warning: Student " + studentId + " did not attempt all questions"
+                    );
+                }
+            } catch (IncompleteQuizException e) {
+                System.out.println(e.getMessage());
+            }
             for (Question q : questions) {
-                String resp = student.getValue().getOrDefault(q.getQuestionId(), "");
-                String correct = q.getCorrectAnswer();
-                int marks = q.getMarks();
-
-                // ⭐ REPLACED STRATEGY WITH SIMPLE LOGIC
-                if (resp.equalsIgnoreCase(correct)) {
-                    total += marks;
-                } else {
-                    if (negativeScoring && !resp.isBlank()) {
-                        total -= 0.25 * marks;
-                    }
+                String resp = studentResponses.get(q.getQuestionId());
+                if (resp == null || resp.isBlank()) {
+                    continue;
+                }
+                if (resp.equalsIgnoreCase(q.getCorrectAnswer())) {
+                    total += q.getMarks();
+                } 
+                else if (negativeScoring) {
+                    total -= 0.25 * q.getMarks();
                 }
             }
-            scores.put(sid, total);
+
+            scores.put(studentId, total);
         }
-
-        System.out.println("Evaluation done for " + scores.size() + " students.");
+        System.out.println("Evaluation completed for " + scores.size() + " students.");
     }
-
     public void exportResults() throws Exception {
         new ReportWriter(reportPath).writeReport(scores);
         System.out.println("Report exported to " + reportPath);
     }
-
     public Map<String, Double> getScores() { return scores; }
     public void calculateDifficulty() {
-
         System.out.println("\n===== QUESTION DIFFICULTY REPORT =====");
-
+        List<String> easy = new ArrayList<>();
+        List<String> medium = new ArrayList<>();
+        List<String> difficult = new ArrayList<>();
         for (Question q : questions) {
             int totalAttempts = 0;
             int correctCount = 0;
-
             for (Map<String, String> studentResp : responses.values()) {
                 if (studentResp.containsKey(q.getQuestionId())) {
                     totalAttempts++;
-
-                    String response = studentResp.get(q.getQuestionId());
-                    if (response.equalsIgnoreCase(q.getCorrectAnswer())) {
+                    String resp = studentResp.get(q.getQuestionId());
+                    if (resp != null && resp.equalsIgnoreCase(q.getCorrectAnswer())) {
                         correctCount++;
                     }
                 }
             }
-
-            if (totalAttempts == 0) {
-                System.out.println(q.getQuestionId() + " : No attempts");
-                continue;
-            }
+            if (totalAttempts == 0) continue; 
 
             double percentage = (correctCount * 100.0) / totalAttempts;
 
-            String level;
             if (percentage >= 70) {
-                level = "Easy";
+                easy.add(q.getQuestionId());
             } else if (percentage >= 40) {
-                level = "Medium";
+                medium.add(q.getQuestionId());
             } else {
-                level = "Difficult";
+                difficult.add(q.getQuestionId());
             }
-
-            System.out.printf(
-                "%s → %.2f%% correct → %s%n",
-                q.getQuestionId(), percentage, level
-            );
         }
+
+        System.out.println("Easy Questions     : " + easy);
+        System.out.println("Medium Questions   : " + medium);
+        System.out.println("Difficult Questions: " + difficult);
     }
 
-}
+    }
