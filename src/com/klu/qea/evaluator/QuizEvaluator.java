@@ -8,11 +8,12 @@ import java.util.*;
 
 public class QuizEvaluator implements Evaluator{
 
-     private final String questionsPath;
-    private final  String responsesPath;
-     private final String reportPath;
+    private final String questionsPath;
+    private final String responsesPath;
+    private final String reportPath;
 
-    private boolean negativeScoring;   // NEW FLAG
+    private boolean negativeScoring;  
+
     List<Question> questions = new ArrayList<>();
      Map<String, Map<String, String>> responses = new HashMap<>();
      Map<String, Double> scores = new LinkedHashMap<>();
@@ -65,5 +66,46 @@ public class QuizEvaluator implements Evaluator{
     }
 
     public Map<String, Double> getScores() { return scores; }
+    public void calculateDifficulty() {
+
+        System.out.println("\n===== QUESTION DIFFICULTY REPORT =====");
+
+        for (Question q : questions) {
+            int totalAttempts = 0;
+            int correctCount = 0;
+
+            for (Map<String, String> studentResp : responses.values()) {
+                if (studentResp.containsKey(q.getQuestionId())) {
+                    totalAttempts++;
+
+                    String response = studentResp.get(q.getQuestionId());
+                    if (response.equalsIgnoreCase(q.getCorrectAnswer())) {
+                        correctCount++;
+                    }
+                }
+            }
+
+            if (totalAttempts == 0) {
+                System.out.println(q.getQuestionId() + " : No attempts");
+                continue;
+            }
+
+            double percentage = (correctCount * 100.0) / totalAttempts;
+
+            String level;
+            if (percentage >= 70) {
+                level = "Easy";
+            } else if (percentage >= 40) {
+                level = "Medium";
+            } else {
+                level = "Difficult";
+            }
+
+            System.out.printf(
+                "%s → %.2f%% correct → %s%n",
+                q.getQuestionId(), percentage, level
+            );
+        }
+    }
+
 }
-	

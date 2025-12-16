@@ -1,37 +1,47 @@
 package MainApp;
-import com.klu.qea.evaluator.QuizEvaluator;
 
-import java.util.Scanner;
+	import com.klu.qea.evaluator.QuizEvaluator;
 
-public class Main {
-    public static void main(String[] args) throws Exception {
+	import java.util.Scanner;
 
-        Scanner sc = new Scanner(System.in);
+	public class Main {
+	    public static void main(String[] args) throws Exception {
 
-        String qPath = "questions.csv";
-        String rPath = "responses.csv";
-        String report = "report.csv";
+	        Scanner sc = new Scanner(System.in);
 
-        System.out.println("===== QUIZ EVALUATION SYSTEM =====");
-        System.out.println("Choose scoring: 1) Normal  2) Negative (0.25)");
-        String choice = sc.nextLine();
+	        String qPath = "questions.csv";
+	        String rPath = "responses.csv";
+	        String report = "report.csv";
 
-        boolean negative = choice.equals("2");
+	  System.out.println("===== QUIZ EVALUATION SYSTEM =====");
+	   System.out.println("Choose scoring: 1) Normal  2) Negative (0.25)");
+	        String choice = sc.nextLine();
 
-        QuizEvaluator evaluator = new QuizEvaluator(qPath, rPath, report, negative);
+	        boolean negative = choice.equals("2");
 
-        while (true) {
-            System.out.println("\n1. Load Questions\n2. Load Responses\n3. Evaluate\n4. Export Report\n5. Exit");
-            String op = sc.nextLine();
+	        QuizEvaluator evaluator = new QuizEvaluator(qPath, rPath, report, negative);
 
-            switch (op) {
-                case "1": evaluator.loadQuestions(); break;
-                case "2": evaluator.loadResponses(); break;
-                case "3": evaluator.evaluateAll(); break;
-                case "4": evaluator.exportResults(); break;
-                case "5": return;
-                default: System.out.println("Invalid option");
-            }
-        }
-    }
-}
+	        while (true) {
+	        	System.out.println(
+	        			  "\n1. Load Questions\n2. Load Responses\n3. Evaluate\n4. Export Report\n5. Difficulty Analysis\n6. Exit"
+	        			);
+
+	            String op = sc.nextLine();
+
+	            switch (op) {
+	                case "1": evaluator.loadQuestions(); break;
+	                case "2": evaluator.loadResponses(); break;
+	                case "3": evaluator.evaluateAll(); break;
+	                case "4": evaluator.exportResults(); break;
+	                case "5":
+	                    evaluator.calculateDifficulty();
+	                    break;
+
+	                case "6":
+	                    return;
+
+	                default: System.out.println("Invalid option");
+	            }
+	        }
+	    }
+	}
